@@ -46,7 +46,6 @@ public class AuthController {
             HandlerResult authentication = authenticationHandler.authentication(authToken);
             //todo TGT加密 代码优化
             Cookie cookie = new Cookie(Constant.TGT_COOKIE_NAME, authentication.getTicket());
-            cookie.setDomain(request.getRemoteHost());
             cookie.setDomain("localhost");
             cookie.setPath("/");
             response.addCookie(cookie);
@@ -59,7 +58,6 @@ public class AuthController {
     @GetMapping("logout")
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         Cookie cookie = new Cookie(Constant.TGT_COOKIE_NAME, null);
-        cookie.setDomain(request.getRemoteHost());
         cookie.setDomain("localhost");
         cookie.setPath("/");
         response.addCookie(cookie);
