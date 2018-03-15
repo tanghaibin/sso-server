@@ -9,4 +9,8 @@ public interface Constant {
 
     String TGT_COOKIE_NAME = "TGT";
 
+    String SSO_REDIRECT_KEY = "redirectURL";
+
+
+
 }
