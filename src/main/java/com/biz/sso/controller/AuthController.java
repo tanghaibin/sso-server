@@ -70,15 +70,18 @@ public class AuthController {
     }
 
     @GetMapping("autoLogin")
-    public String autoLogin(HttpServletRequest request, HttpServletResponse response) {
+    public String autoLogin(HttpServletRequest request) {
         Cookie ticketCookie = WebUtils.getCookie(request, Constant.TGT_COOKIE_NAME);
+        final String redirectURL = request.getParameter(Constant.SSO_REDIRECT_KEY);
+        //存在TGT cookie 并且
         if(ticketCookie == null || !tgtService.validTGT(ticketCookie.getValue())) {
+            if(StringUtils.isNotBlank(redirectURL)) {
+                request.getSession().setAttribute(Constant.SSO_REDIRECT_KEY, redirectURL);
+            }
             return "redirect:login";
         } else {
-            final String redirectURL = request.getParameter(Constant.SSO_REDIRECT_KEY);
             if(StringUtils.isBlank(redirectURL)) {
-                request.getSession().setAttribute(Constant.SSO_REDIRECT_KEY, redirectURL);
-                return "redirect:login";
+                return "redirect:index";
             } else {
                 Map<String, String> params = new HashMap<>(1);
                 params.put(Constant.TGT_COOKIE_NAME, ticketCookie.getValue());
