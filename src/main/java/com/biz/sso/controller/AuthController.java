@@ -2,6 +2,7 @@ package com.biz.sso.controller;
 
 import com.biz.sso.auth.AuthenticationHandler;
 import com.biz.sso.bean.*;
+import com.biz.sso.config.SSOConfig;
 import com.biz.sso.constant.Constant;
 import com.biz.sso.exception.AuthenticationException;
 import com.biz.sso.service.TGTService;
@@ -37,6 +38,9 @@ public class AuthController {
     @Autowired
     private AuthenticationHandler authenticationHandler;
 
+    @Autowired
+    private SSOConfig ssoConfig;
+
     @GetMapping("login")
     public String login() {
         return "login";
@@ -50,10 +54,18 @@ public class AuthController {
             HandlerResult authentication = authenticationHandler.authentication(authToken);
             //todo TGT加密 代码优化
             Cookie cookie = new Cookie(Constant.TGT_COOKIE_NAME, authentication.getTicket());
-            cookie.setDomain("localhost");
-            cookie.setPath("/");
+            cookie.setDomain(ssoConfig.getCookieDomain());
+            cookie.setPath(ssoConfig.getCookiePath());
             response.addCookie(cookie);
-            return new JSONResult();
+            Object redirectUrl = request.getSession().getAttribute(Constant.SSO_REDIRECT_KEY);
+            JSONResult result = new JSONResult();
+            if(redirectUrl == null) {
+                result.setData(ssoConfig.getLoginSuccessUrl());
+            } else {
+                request.getSession().removeAttribute(Constant.SSO_REDIRECT_KEY);
+                result.setData(redirectUrl);
+            }
+            return result;
         } catch (AuthenticationException ex) {
             return new JSONResult(ex.getCode(), ex.getMessage());
         }
@@ -62,8 +74,8 @@ public class AuthController {
     @GetMapping("logout")
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         Cookie cookie = new Cookie(Constant.TGT_COOKIE_NAME, null);
-        cookie.setDomain("localhost");
-        cookie.setPath("/");
+        cookie.setDomain(ssoConfig.getCookieDomain());
+        cookie.setPath(ssoConfig.getCookiePath());
         response.addCookie(cookie);
         tgtService.remove(WebUtils.getCookie(request, Constant.TGT_COOKIE_NAME).getName());
         return "redirect:login";
@@ -73,15 +85,15 @@ public class AuthController {
     public String autoLogin(HttpServletRequest request) {
         Cookie ticketCookie = WebUtils.getCookie(request, Constant.TGT_COOKIE_NAME);
         final String redirectURL = request.getParameter(Constant.SSO_REDIRECT_KEY);
-        //存在TGT cookie 并且
+        //不存在TGT cookie 或者 TGT有效，重定向到登陆界面
         if(ticketCookie == null || !tgtService.validTGT(ticketCookie.getValue())) {
             if(StringUtils.isNotBlank(redirectURL)) {
                 request.getSession().setAttribute(Constant.SSO_REDIRECT_KEY, redirectURL);
             }
-            return "redirect:login";
+            return "redirect:" + ssoConfig.getLoginUrl();
         } else {
             if(StringUtils.isBlank(redirectURL)) {
-                return "redirect:index";
+                return "redirect:" + ssoConfig.getLoginSuccessUrl();
             } else {
                 Map<String, String> params = new HashMap<>(1);
                 params.put(Constant.TGT_COOKIE_NAME, ticketCookie.getValue());

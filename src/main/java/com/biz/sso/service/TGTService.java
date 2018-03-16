@@ -13,4 +13,6 @@ public interface TGTService {
     boolean validTGT(String ticket);
 
     boolean remove(String ticket);
+
+    void save(String key, String value);
 }

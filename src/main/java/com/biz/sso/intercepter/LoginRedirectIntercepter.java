@@ -1,5 +1,6 @@
 package com.biz.sso.intercepter;
 
+import com.biz.sso.config.SSOConfig;
 import com.biz.sso.constant.Constant;
 import com.biz.sso.service.TGTService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ public class LoginRedirectIntercepter extends HandlerInterceptorAdapter {
     @Autowired
     private TGTService tgtService;
 
+    @Autowired
+    private SSOConfig ssoConfig;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         Cookie ticketCookie = WebUtils.getCookie(request, Constant.TGT_COOKIE_NAME);
@@ -28,7 +32,7 @@ public class LoginRedirectIntercepter extends HandlerInterceptorAdapter {
             return true;
         }
         if(tgtService.validTGT(ticketCookie.getValue())) {
-            response.sendRedirect("/test/index");
+            response.sendRedirect(ssoConfig.getLoginSuccessUrl());
             return false;
         }
         return true;

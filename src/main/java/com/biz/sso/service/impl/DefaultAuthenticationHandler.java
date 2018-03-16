@@ -50,6 +50,8 @@ public class DefaultAuthenticationHandler implements AuthenticationHandler {
     }
 
     private HandlerResult createHandlerResult(String id) {
-        return new HandlerResult(id, tgtService.createTGT());
+        HandlerResult result = new HandlerResult(id, tgtService.createTGT());
+        tgtService.save(result.getTicket(), id);
+        return result;
     }
 }

@@ -1,6 +1,8 @@
 package com.biz.sso.service.impl;
 
 import com.biz.sso.service.TGTService;
+import com.biz.sso.support.RedisSupport;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,6 +17,9 @@ public class DefualtTGTServiceImpl implements TGTService {
     private static final String PREFIX = "TGT-";
 
     private Set<String> tickets = new HashSet<>();
+
+    @Autowired
+    private RedisSupport redisSupport;
 
     @Override
     public String createTGT() {
@@ -31,5 +36,10 @@ public class DefualtTGTServiceImpl implements TGTService {
     @Override
     public boolean remove(String ticket) {
         return tickets.remove(ticket);
+    }
+
+    @Override
+    public void save(String key, String value) {
+        redisSupport.set(key, value);
     }
 }
