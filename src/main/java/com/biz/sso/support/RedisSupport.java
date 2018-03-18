@@ -18,12 +18,17 @@ public class RedisSupport {
     private RedisTemplate redisTemplate;
 
     public String get(String key) {
-        Object value = redisTemplate.opsForValue().get(key);
+        Object value = redisTemplate.<String, String>opsForValue().get(key);
         return value == null ? null : value.toString();
     }
 
     public void set(String key, String value) {
         assert StringUtils.isNoneBlank(key, value);
         redisTemplate.opsForValue().set(key, value);
+    }
+
+    public boolean del(String key) {
+        assert StringUtils.isNotBlank(key);
+        return redisTemplate.delete(key);
     }
 }

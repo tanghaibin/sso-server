@@ -2,6 +2,7 @@ package com.biz.sso.service.impl;
 
 import com.biz.sso.service.TGTService;
 import com.biz.sso.support.RedisSupport;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
@@ -16,26 +17,22 @@ public class DefualtTGTServiceImpl implements TGTService {
 
     private static final String PREFIX = "TGT-";
 
-    private Set<String> tickets = new HashSet<>();
-
     @Autowired
     private RedisSupport redisSupport;
 
     @Override
     public String createTGT() {
-        final String ticket = PREFIX + UUID.randomUUID().toString().replace("-", "").toUpperCase();
-        tickets.add(ticket);
-        return ticket;
+        return PREFIX + UUID.randomUUID().toString().replace("-", "").toUpperCase();
     }
 
     @Override
     public boolean validTGT(String ticket) {
-        return tickets.contains(ticket);
+        return StringUtils.isNotBlank(redisSupport.get(ticket));
     }
 
     @Override
     public boolean remove(String ticket) {
-        return tickets.remove(ticket);
+        return redisSupport.del(ticket);
     }
 
     @Override
